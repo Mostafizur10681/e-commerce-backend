@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Http\Controllers\API\V1;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Str;
+
+class AuthController extends Controller
+{
+    /**
+     * Register a new user.
+     */
+    public function register(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        // Assign default Customer role if it exists
+        if (\Spatie\Permission\Models\Role::where('name', 'Customer')->exists()) {
+            $user->assignRole('Customer');
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->success([
+            'user' => $user->load('roles'),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 'Registration successful', 201);
+    }
+
+    /**
+     * Log in a user.
+     */
+    public function login(Request $request): JsonResponse
+    {
+        $request->validate([
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return $this->error('Invalid login credentials', [
+                'email' => ['The provided credentials do not match our records.']
+            ], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->success([
+            'user' => $user->load('roles.permissions', 'permissions'),
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 'Login successful');
+    }
+
+    /**
+     * Log out a user (revoke token).
+     */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->success([], 'Logged out successfully');
+    }
+
+    /**
+     * Get the authenticated user's profile.
+     */
+    public function profile(Request $request): JsonResponse
+    {
+        $user = $request->user()->load('roles.permissions', 'permissions');
+        return $this->success($user, 'Profile retrieved successfully');
+    }
+
+    /**
+     * Change the authenticated user's password.
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = $request->user();
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return $this->success([], 'Password changed successfully');
+    }
+
+    /**
+     * Send password reset link/token.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate(['email' => 'required|email']);
+
+        // We use Laravel's native Password broker which generates reset tokens.
+        // It will send the notification/email which is caught in storage/logs/laravel.log.
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return $this->success([], __($status));
+        }
+
+        return $this->error(__($status), [
+            'email' => [__($status)]
+        ], 400);
+    }
+
+    /**
+     * Reset the user's password using reset token.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return $this->success([], __($status));
+        }
+
+        return $this->error(__($status), [
+            'email' => [__($status)]
+        ], 400);
+    }
+}
