@@ -22,6 +22,7 @@ Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 
 // Protected APIs
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
 
@@ -76,5 +77,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/customers/{id}', [AdminController::class, 'customersShow']);
         Route::put('/customers/{id}', [AdminController::class, 'customersUpdate']);
         Route::patch('/customers/{id}/status', [AdminController::class, 'customersToggleBlock']);
+
+        // User Management
+        Route::get('/users', [AdminController::class, 'usersIndex']);
+        Route::put('/users/{id}', [AdminController::class, 'usersUpdate']);
+        Route::delete('/users/{id}', [AdminController::class, 'usersDestroy']);
     });
 });

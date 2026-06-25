@@ -13,6 +13,7 @@ use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\OrderRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 
 class AdminService
 {
@@ -95,5 +96,51 @@ class AdminService
         $newStatus = $user->status === 'blocked' ? 'active' : 'blocked';
         $user->update(['status' => $newStatus]);
         return $user;
+    }
+
+    // General Users CRUD
+    public function paginateUsers(int $perPage = 15): LengthAwarePaginator
+    {
+        return User::with('customerProfile', 'adminProfile')->paginate($perPage);
+    }
+
+    public function updateUser(int|string $id, array $data): User
+    {
+        $user = User::findOrFail($id);
+        
+        // Handle password hashing if updated
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+        
+        $user->update(array_filter($data, function($val) {
+            return $val !== null;
+        }));
+
+        // Handle role syncing if Spatie HasRoles trait is used
+        if (isset($data['role'])) {
+            $roleName = ucfirst($data['role']);
+            if (strtolower($roleName) === 'vendor' || strtolower($roleName) === 'seller') {
+                $roleName = 'Seller';
+            }
+            $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            $user->syncRoles([$role]);
+        }
+
+        return $user->load('customerProfile', 'adminProfile');
+    }
+
+    public function deleteUser(int|string $id): bool
+    {
+        $user = User::findOrFail($id);
+        
+        // Revoke tokens
+        $user->tokens()->delete();
+        
+        // Delete profile associations if necessary
+        $user->customerProfile()->delete();
+        $user->adminProfile()->delete();
+        
+        return $user->delete();
     }
 }

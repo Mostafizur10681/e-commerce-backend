@@ -374,20 +374,49 @@ class UnifiedAuthAndRbacTest extends TestCase
     public function test_v1_admin_register_and_login(): void
     {
         $regResponse = $this->postJson('/api/v1/auth/admin/register', [
-            'name' => 'V1 Admin',
-            'email' => 'v1.admin@example.com',
+            'name' => 'Jane Doe',
+            'email' => 'jane.doe@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
+            'phone' => '+1234567890',
+            'designation' => 'Administrator',
+            'department' => 'IT Support',
         ]);
 
         $regResponse->assertStatus(201)
             ->assertJson([
                 'success' => true,
                 'message' => 'Admin registration successful',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'user' => [
+                        'id',
+                        'name',
+                        'email',
+                        'phone',
+                        'role',
+                        'status',
+                        'admin_profile',
+                    ],
+                    'access_token',
+                ]
             ]);
 
+        $this->assertDatabaseHas('users', [
+            'email' => 'jane.doe@example.com',
+            'phone' => '+1234567890',
+            'role' => 'admin',
+        ]);
+
+        $this->assertDatabaseHas('admin_profiles', [
+            'user_id' => $regResponse->json('data.user.id'),
+            'designation' => 'Administrator',
+            'department' => 'IT Support',
+        ]);
+
         $loginResponse = $this->postJson('/api/v1/auth/admin/login', [
-            'email' => 'v1.admin@example.com',
+            'email' => 'jane.doe@example.com',
             'password' => 'password123',
         ]);
 
@@ -395,6 +424,228 @@ class UnifiedAuthAndRbacTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Admin login successful',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'user' => [
+                        'id',
+                        'name',
+                        'email',
+                        'admin_profile',
+                    ],
+                    'access_token',
+                ]
+            ]);
+    }
+
+    /**
+     * Test V1 Customer registration and login.
+     */
+    public function test_v1_customer_register_and_login(): void
+    {
+        $regResponse = $this->postJson('/api/v1/auth/customer/register', [
+            'name' => 'John Customer',
+            'email' => 'john.cust@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'phone' => '+1987654321',
+            'address' => '123 Customer Lane',
+        ]);
+
+        $regResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Customer registration successful',
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'john.cust@example.com',
+            'phone' => '+1987654321',
+            'role' => 'customer',
+        ]);
+
+        $this->assertDatabaseHas('customer_profiles', [
+            'user_id' => $regResponse->json('data.user.id'),
+            'shipping_address' => '123 Customer Lane',
+        ]);
+
+        $loginResponse = $this->postJson('/api/v1/auth/customer/login', [
+            'email' => 'john.cust@example.com',
+            'password' => 'password123',
+        ]);
+
+        $loginResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Customer login successful',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'user' => [
+                        'id',
+                        'name',
+                        'email',
+                        'customer_profile',
+                    ],
+                    'access_token',
+                ]
+            ]);
+    }
+
+    /**
+     * Test V1 Admin blocked check fails login.
+     */
+    public function test_v1_blocked_admin_cannot_login(): void
+    {
+        // Register Admin
+        $regResponse = $this->postJson('/api/v1/auth/admin/register', [
+            'name' => 'Blocked Admin',
+            'email' => 'blocked.admin@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+        $regResponse->assertStatus(201);
+
+        // Block Admin in database
+        $user = User::find($regResponse->json('data.user.id'));
+        $user->update(['status' => 'blocked']);
+
+        // Try login
+        $loginResponse = $this->postJson('/api/v1/auth/admin/login', [
+            'email' => 'blocked.admin@example.com',
+            'password' => 'password123',
+        ]);
+
+        $loginResponse->assertStatus(422)
+            ->assertJsonValidationErrors(['status']);
+    }
+
+    /**
+     * Test retrieval of authenticated user details via profile route.
+     */
+    public function test_authenticated_user_can_retrieve_profile(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'auth.profile.test@example.com',
+            'role' => 'customer',
+        ]);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->getJson('/api/user');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Profile retrieved successfully',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'name',
+                    'email',
+                ]
+            ]);
+    }
+
+    /**
+     * Test admin can list all users.
+     */
+    public function test_admin_can_list_all_users(): void
+    {
+        $admin = User::where('email', 'admin@example.com')->first();
+        
+        $response = $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/admin/users');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Users retrieved successfully',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'current_page',
+                    'data' => [
+                        '*' => [
+                            'id',
+                            'name',
+                            'email',
+                            'role',
+                            'status',
+                        ]
+                    ]
+                ]
+            ]);
+    }
+
+    /**
+     * Test admin can update any user.
+     */
+    public function test_admin_can_update_user(): void
+    {
+        $admin = User::where('email', 'admin@example.com')->first();
+        $customer = User::where('email', 'customer@example.com')->first();
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->putJson("/api/admin/users/{$customer->id}", [
+                'name' => 'Updated Cust Name',
+                'role' => 'admin',
+                'status' => 'blocked',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'User updated successfully',
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $customer->id,
+            'name' => 'Updated Cust Name',
+            'role' => 'admin',
+            'status' => 'blocked',
+        ]);
+    }
+
+    /**
+     * Test admin can delete any user.
+     */
+    public function test_admin_can_delete_user(): void
+    {
+        $admin = User::where('email', 'admin@example.com')->first();
+        
+        $userToDelete = User::create([
+            'name' => 'Delete Me',
+            'email' => 'deleteme@example.com',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'role' => 'customer',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->deleteJson("/api/admin/users/{$userToDelete->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'User deleted successfully',
+            ]);
+
+        $this->assertDatabaseMissing('users', [
+            'id' => $userToDelete->id,
+        ]);
+    }
+
+    /**
+     * Test unauthenticated request to API route returns 401 JSON.
+     */
+    public function test_unauthenticated_request_returns_401_json(): void
+    {
+        $response = $this->get('/api/admin/users');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthenticated.',
             ]);
     }
 }

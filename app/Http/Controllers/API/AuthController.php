@@ -84,6 +84,12 @@ class AuthController extends Controller
         return $this->success([], 'Logged out successfully');
     }
 
+    public function profile(Request $request): JsonResponse
+    {
+        $user = $request->user()->load('customerProfile', 'adminProfile');
+        return $this->success($user, 'Profile retrieved successfully');
+    }
+
     public function changePassword(Request $request): JsonResponse
     {
         $request->validate([

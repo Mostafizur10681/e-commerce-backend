@@ -244,4 +244,33 @@ class AdminController extends Controller
         $user = $this->adminService->toggleCustomerBlock($id);
         return $this->success($user, "Customer block status toggled. Current status: {$user->status}");
     }
+
+    // General Users CRUD
+    public function usersIndex(Request $request): JsonResponse
+    {
+        $perPage = $request->query('per_page', 15);
+        $users = $this->adminService->paginateUsers($perPage);
+        return $this->success($users, 'Users retrieved successfully');
+    }
+
+    public function usersUpdate(Request $request, string $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'email' => 'nullable|string|email|max:255|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'role' => 'nullable|string|in:admin,customer,vendor,staff',
+            'status' => 'nullable|string|in:active,blocked',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $user = $this->adminService->updateUser($id, $validated);
+        return $this->success($user, 'User updated successfully');
+    }
+
+    public function usersDestroy(string $id): JsonResponse
+    {
+        $this->adminService->deleteUser($id);
+        return $this->success([], 'User deleted successfully');
+    }
 }

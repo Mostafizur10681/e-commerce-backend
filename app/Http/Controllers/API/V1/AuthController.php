@@ -4,7 +4,8 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Customer;
+use App\Models\CustomerProfile;
+use App\Models\AdminProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -32,27 +33,26 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'phone' => $request->phone,
             'password' => Hash::make($request->password),
+            'role' => 'customer',
+            'status' => 'active',
         ]);
 
         // Assign Customer role (create if not exists)
         $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Customer', 'guard_name' => 'web']);
         $user->assignRole($role);
 
-        // Store customer details in customers table
-        $customer = Customer::create([
+        // Store customer details in customer_profiles table
+        $customerProfile = CustomerProfile::create([
             'user_id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'phone' => $request->phone,
-            'address' => $request->address,
+            'shipping_address' => $request->address,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles'),
-            'customer' => $customer,
+            'user' => $user->load('roles', 'customerProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Customer registration successful', 201);
@@ -73,6 +73,8 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'vendor',
+            'status' => 'active',
         ]);
 
         // Assign Seller role (create if not exists)
@@ -98,6 +100,8 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => ['nullable', 'string', 'max:20'],
+            'designation' => ['nullable', 'string', 'max:255'],
+            'department' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = User::create([
@@ -114,15 +118,16 @@ class AuthController extends Controller
         $user->assignRole($role);
 
         // Store admin details in admin_profiles table
-        $adminProfile = \App\Models\AdminProfile::create([
+        $adminProfile = AdminProfile::create([
             'user_id' => $user->id,
+            'designation' => $request->designation,
+            'department' => $request->department,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles'),
-            'admin_profile' => $adminProfile,
+            'user' => $user->load('roles', 'adminProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Admin registration successful', 201);
@@ -146,6 +151,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->status === 'blocked') {
+            throw ValidationException::withMessages([
+                'status' => ['Your account has been blocked.'],
+            ]);
+        }
+
         // Verify the user has Customer role
         if (!$user->hasRole('Customer')) {
             return $this->error('Unauthorized role access', [
@@ -156,7 +167,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles.permissions', 'permissions', 'customer'),
+            'user' => $user->load('roles.permissions', 'permissions', 'customerProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Customer login successful');
@@ -178,6 +189,12 @@ class AuthController extends Controller
             return $this->error('Invalid login credentials', [
                 'email' => ['The provided credentials do not match our records.']
             ], 401);
+        }
+
+        if ($user->status === 'blocked') {
+            throw ValidationException::withMessages([
+                'status' => ['Your account has been blocked.'],
+            ]);
         }
 
         // Verify the user has Seller role
@@ -214,6 +231,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->status === 'blocked') {
+            throw ValidationException::withMessages([
+                'status' => ['Your account has been blocked.'],
+            ]);
+        }
+
         // Verify the user has Admin or Editor role
         if (!$user->hasRole(['Admin', 'Editor'])) {
             return $this->error('Unauthorized role access', [
@@ -224,7 +247,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles.permissions', 'permissions'),
+            'user' => $user->load('roles.permissions', 'permissions', 'adminProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Admin login successful');
@@ -245,6 +268,8 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'customer',
+            'status' => 'active',
         ]);
 
         // Assign default Customer role if it exists
@@ -252,10 +277,14 @@ class AuthController extends Controller
             $user->assignRole('Customer');
         }
 
+        CustomerProfile::create([
+            'user_id' => $user->id,
+        ]);
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles'),
+            'user' => $user->load('roles', 'customerProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Registration successful', 201);
@@ -279,10 +308,16 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->status === 'blocked') {
+            throw ValidationException::withMessages([
+                'status' => ['Your account has been blocked.'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return $this->success([
-            'user' => $user->load('roles.permissions', 'permissions'),
+            'user' => $user->load('roles.permissions', 'permissions', 'customerProfile', 'adminProfile'),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 'Login successful');
