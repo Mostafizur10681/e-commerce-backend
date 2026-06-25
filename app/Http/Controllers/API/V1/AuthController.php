@@ -89,6 +89,46 @@ class AuthController extends Controller
     }
 
     /**
+     * Register a new Admin.
+     */
+    public function registerAdmin(Request $request): JsonResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'role' => 'admin',
+            'status' => 'active',
+        ]);
+
+        // Assign Admin role (create if not exists)
+        $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $user->assignRole($role);
+
+        // Store admin details in admin_profiles table
+        $adminProfile = \App\Models\AdminProfile::create([
+            'user_id' => $user->id,
+        ]);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->success([
+            'user' => $user->load('roles'),
+            'admin_profile' => $adminProfile,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ], 'Admin registration successful', 201);
+    }
+
+    /**
      * Log in a Customer.
      */
     public function loginCustomer(Request $request): JsonResponse

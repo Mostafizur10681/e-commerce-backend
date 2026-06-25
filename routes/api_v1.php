@@ -39,6 +39,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/customer/login', [AuthController::class, 'loginCustomer']);
     Route::post('/seller/register', [AuthController::class, 'registerSeller']);
     Route::post('/seller/login', [AuthController::class, 'loginSeller']);
+    Route::post('/admin/register', [AuthController::class, 'registerAdmin']);
     Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 
     Route::post('/register', [AuthController::class, 'register']);

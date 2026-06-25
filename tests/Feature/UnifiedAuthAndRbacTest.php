@@ -367,4 +367,34 @@ class UnifiedAuthAndRbacTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['role']);
     }
+
+    /**
+     * Test V1 Admin registration and login.
+     */
+    public function test_v1_admin_register_and_login(): void
+    {
+        $regResponse = $this->postJson('/api/v1/auth/admin/register', [
+            'name' => 'V1 Admin',
+            'email' => 'v1.admin@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $regResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Admin registration successful',
+            ]);
+
+        $loginResponse = $this->postJson('/api/v1/auth/admin/login', [
+            'email' => 'v1.admin@example.com',
+            'password' => 'password123',
+        ]);
+
+        $loginResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Admin login successful',
+            ]);
+    }
 }
