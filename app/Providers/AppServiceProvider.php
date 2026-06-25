@@ -29,6 +29,14 @@ use App\Repositories\Interfaces\FaqRepositoryInterface;
 use App\Repositories\Eloquent\FaqRepository;
 use App\Repositories\Interfaces\SubscriptionRepositoryInterface;
 use App\Repositories\Eloquent\SubscriptionRepository;
+use App\Repositories\Interfaces\BrandRepositoryInterface;
+use App\Repositories\Eloquent\BrandRepository;
+use App\Repositories\Interfaces\WishlistRepositoryInterface;
+use App\Repositories\Eloquent\WishlistRepository;
+use App\Repositories\Interfaces\AddressRepositoryInterface;
+use App\Repositories\Eloquent\AddressRepository;
+use App\Repositories\Interfaces\CustomerProfileRepositoryInterface;
+use App\Repositories\Eloquent\CustomerProfileRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -49,6 +57,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ReviewRepositoryInterface::class, ReviewRepository::class);
         $this->app->bind(FaqRepositoryInterface::class, FaqRepository::class);
         $this->app->bind(SubscriptionRepositoryInterface::class, SubscriptionRepository::class);
+        $this->app->bind(BrandRepositoryInterface::class, BrandRepository::class);
+        $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
+        $this->app->bind(AddressRepositoryInterface::class, AddressRepository::class);
+        $this->app->bind(CustomerProfileRepositoryInterface::class, CustomerProfileRepository::class);
     }
 
     /**
