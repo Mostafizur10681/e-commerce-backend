@@ -63,7 +63,7 @@ class CustomerProfileController extends Controller
     }
 
     // Addresses
-    public function getAddresses(Request $request): JsonResponse
+    public function getAddresses(Request  $request): JsonResponse
     {
         $addresses = $this->profileService->getAddresses($request->user());
         return $this->success($addresses, 'Addresses retrieved successfully');

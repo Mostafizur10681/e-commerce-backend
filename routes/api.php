@@ -10,9 +10,9 @@ Route::prefix('v1')->group(base_path('routes/api_v1.php'));
 
 // Administrative Locations routes
 Route::prefix('v1')->group(function () {
-    Route::apiResource('divisions', \App\Http\Controllers\API\V1\DivisionController::class);
-    Route::apiResource('districts', \App\Http\Controllers\API\V1\DistrictController::class);
-    Route::apiResource('thanas', \App\Http\Controllers\API\V1\ThanaController::class);
+    Route::apiResource('divisions', \App\Http\Controllers\API\V1\DivisionController::class)->only(['index', 'show']);
+    Route::apiResource('districts', \App\Http\Controllers\API\V1\DistrictController::class)->only(['index', 'show']);
+    Route::apiResource('thanas', \App\Http\Controllers\API\V1\ThanaController::class)->only(['index', 'show']);
 });
 
 // Public Authentication APIs
@@ -89,5 +89,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [AdminController::class, 'usersIndex']);
         Route::put('/users/{id}', [AdminController::class, 'usersUpdate']);
         Route::delete('/users/{id}', [AdminController::class, 'usersDestroy']);
+
+        // Location Management
+        Route::post('/divisions', [\App\Http\Controllers\API\V1\DivisionController::class, 'store']);
+        Route::put('/divisions/{division}', [\App\Http\Controllers\API\V1\DivisionController::class, 'update']);
+        Route::delete('/divisions/{division}', [\App\Http\Controllers\API\V1\DivisionController::class, 'destroy']);
+
+        Route::post('/districts', [\App\Http\Controllers\API\V1\DistrictController::class, 'store']);
+        Route::put('/districts/{district}', [\App\Http\Controllers\API\V1\DistrictController::class, 'update']);
+        Route::delete('/districts/{district}', [\App\Http\Controllers\API\V1\DistrictController::class, 'destroy']);
+
+        Route::post('/thanas', [\App\Http\Controllers\API\V1\ThanaController::class, 'store']);
+        Route::put('/thanas/{thana}', [\App\Http\Controllers\API\V1\ThanaController::class, 'update']);
+        Route::delete('/thanas/{thana}', [\App\Http\Controllers\API\V1\ThanaController::class, 'destroy']);
     });
 });

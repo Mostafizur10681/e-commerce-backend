@@ -13,7 +13,7 @@ class DistrictRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('district');
+        $id = $this->route('district') ?? $this->route('id');
         if (is_object($id)) {
             $id = $id->id;
         }

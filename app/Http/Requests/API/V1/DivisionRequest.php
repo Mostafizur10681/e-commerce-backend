@@ -13,7 +13,7 @@ class DivisionRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('division');
+        $id = $this->route('division') ?? $this->route('id');
         if (is_object($id)) {
             $id = $id->id;
         }

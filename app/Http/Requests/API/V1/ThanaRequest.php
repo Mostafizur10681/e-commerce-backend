@@ -14,7 +14,7 @@ class ThanaRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('thana');
+        $id = $this->route('thana') ?? $this->route('id');
         if (is_object($id)) {
             $id = $id->id;
         }

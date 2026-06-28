@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Division;
 use App\Models\District;
 use App\Models\Thana;
+use App\Models\User;
+use Database\Seeders\SystemUsersSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,11 +14,17 @@ class LocationsApiTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected User $admin;
+
     protected function setUp(): void
     {
         parent::setUp();
         // Seed the Bangladesh locations data for endpoints that require it
         $this->seed(\Database\Seeders\BangladeshLocationsSeeder::class);
+        // Seed default system users (contains admin@example.com)
+        $this->seed(SystemUsersSeeder::class);
+
+        $this->admin = User::where('email', 'admin@example.com')->first();
     }
 
     /**
@@ -72,7 +80,8 @@ class LocationsApiTest extends TestCase
             'status' => 1,
         ];
 
-        $response = $this->postJson('/api/v1/divisions', $payload);
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->postJson('/api/admin/divisions', $payload);
 
         $response->assertStatus(201)
             ->assertJsonPath('success', true)
@@ -103,7 +112,8 @@ class LocationsApiTest extends TestCase
             'status' => 0,
         ];
 
-        $response = $this->putJson("/api/v1/divisions/{$division->id}", $payload);
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->putJson("/api/admin/divisions/{$division->id}", $payload);
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true)
@@ -122,7 +132,8 @@ class LocationsApiTest extends TestCase
             'status' => 1,
         ]);
 
-        $response = $this->deleteJson("/api/v1/divisions/{$division->id}");
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->deleteJson("/api/admin/divisions/{$division->id}");
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
@@ -151,7 +162,8 @@ class LocationsApiTest extends TestCase
             'status' => 1,
         ];
 
-        $response = $this->postJson('/api/v1/thanas', $payload);
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->postJson('/api/admin/thanas', $payload);
 
         $response->assertStatus(422)
             ->assertJsonPath('success', false)
