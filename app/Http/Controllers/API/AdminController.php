@@ -102,12 +102,19 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
+            'image' => 'nullable|string',
+            'status' => 'nullable|boolean',
         ]);
 
-        $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
         $category = Category::create($validated);
 
         return $this->success($category, 'Category created successfully', 201);
+    }
+
+    public function categoriesShow(string $id): JsonResponse
+    {
+        $category = Category::with('parent')->findOrFail($id);
+        return $this->success($category, 'Category details retrieved');
     }
 
     public function categoriesUpdate(Request $request, string $id): JsonResponse
@@ -117,13 +124,13 @@ class AdminController extends Controller
             'name' => 'nullable|string|max:255',
             'parent_id' => 'nullable|exists:categories,id',
             'description' => 'nullable|string',
+            'image' => 'nullable|string',
+            'status' => 'nullable|boolean',
         ]);
 
-        if (isset($validated['name'])) {
-            $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
-        }
-
-        $category->update(array_filter($validated));
+        $category->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
         return $this->success($category, 'Category updated successfully');
     }
 

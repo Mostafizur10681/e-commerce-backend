@@ -31,13 +31,16 @@ class ReviewController extends Controller
 
         // For public users, we can view reviews for a product (use query parameter product_id)
         $productId = $request->query('product_id');
-        if (!$productId) {
-            return $this->error('product_id query parameter is required');
+        $perPage = $request->query('per_page', 15);
+
+        if ($productId) {
+            $reviews = $this->reviewService->getProductReviews($productId, $perPage);
+            return $this->success(ReviewResource::collection($reviews)->response()->getData(true), 'Product reviews retrieved successfully');
         }
 
-        $perPage = $request->query('per_page', 15);
-        $reviews = $this->reviewService->getProductReviews($productId, $perPage);
-        return $this->success(ReviewResource::collection($reviews)->response()->getData(true), 'Product reviews retrieved successfully');
+        // Return all approved/active reviews if product_id is not specified
+        $reviews = \App\Models\Review::where('status', true)->with(['user', 'product'])->paginate($perPage);
+        return $this->success(ReviewResource::collection($reviews)->response()->getData(true), 'Public reviews retrieved successfully');
     }
 
     public function store(StoreReviewRequest $request): JsonResponse

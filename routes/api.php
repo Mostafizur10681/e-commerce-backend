@@ -27,6 +27,10 @@ Route::post('/customer/login', [AuthController::class, 'loginCustomer']);
 Route::post('/admin/register', [AuthController::class, 'registerAdmin']);
 Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 
+// Public Review APIs
+Route::get('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'index']);
+Route::get('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'show']);
+
 // Protected APIs
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'profile']);
@@ -48,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/addresses', [CustomerProfileController::class, 'getAddresses']);
         Route::post('/addresses', [CustomerProfileController::class, 'addAddress']);
         Route::put('/addresses/{id}', [CustomerProfileController::class, 'updateAddress']);
+        Route::post('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'store']);
     });
 
     // Admin Group
@@ -64,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Category Management
         Route::get('/categories', [AdminController::class, 'categoriesIndex']);
         Route::post('/categories', [AdminController::class, 'categoriesStore']);
+        Route::get('/categories/{id}', [AdminController::class, 'categoriesShow']);
         Route::put('/categories/{id}', [AdminController::class, 'categoriesUpdate']);
         Route::delete('/categories/{id}', [AdminController::class, 'categoriesDestroy']);
 
@@ -109,5 +115,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/attributes', [\App\Http\Controllers\API\V1\AttributeController::class, 'store']);
         Route::put('/attributes/{attribute}', [\App\Http\Controllers\API\V1\AttributeController::class, 'update']);
         Route::delete('/attributes/{attribute}', [\App\Http\Controllers\API\V1\AttributeController::class, 'destroy']);
+
+        // Review Moderation Management
+        Route::get('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'index']);
+        Route::post('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'store']);
+        Route::put('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'update']);
+        Route::delete('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'destroy']);
     });
 });
