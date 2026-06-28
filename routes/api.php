@@ -102,5 +102,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/thanas', [\App\Http\Controllers\API\V1\ThanaController::class, 'store']);
         Route::put('/thanas/{thana}', [\App\Http\Controllers\API\V1\ThanaController::class, 'update']);
         Route::delete('/thanas/{thana}', [\App\Http\Controllers\API\V1\ThanaController::class, 'destroy']);
+
+        // Attribute Management
+        Route::get('/attributes', [\App\Http\Controllers\API\V1\AttributeController::class, 'index']);
+        Route::get('/attributes/{attribute}', [\App\Http\Controllers\API\V1\AttributeController::class, 'show']);
+        Route::post('/attributes', [\App\Http\Controllers\API\V1\AttributeController::class, 'store']);
+        Route::put('/attributes/{attribute}', [\App\Http\Controllers\API\V1\AttributeController::class, 'update']);
+        Route::delete('/attributes/{attribute}', [\App\Http\Controllers\API\V1\AttributeController::class, 'destroy']);
     });
 });
