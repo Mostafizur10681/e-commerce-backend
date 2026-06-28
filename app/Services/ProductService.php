@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use App\Traits\UploadImageTrait;
+use App\Models\ProductImage;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -21,17 +22,17 @@ class ProductService
 
     public function getAllProducts(array $relations = ['category']): Collection
     {
-        return $this->productRepository->all(['*'], $relations);
+        return $this->productRepository->all(['*'], array_merge($relations, ['images']));
     }
 
     public function paginateProducts(int $perPage = 15, array $relations = ['category']): LengthAwarePaginator
     {
-        return $this->productRepository->paginate($perPage, $relations);
+        return $this->productRepository->paginate($perPage, array_merge($relations, ['images']));
     }
 
     public function getProductById(int|string $id, array $relations = ['category']): ?Model
     {
-        return $this->productRepository->findOrFail($id, ['*'], $relations);
+        return $this->productRepository->findOrFail($id, ['*'], array_merge($relations, ['images']));
     }
 
     public function createProduct(array $data): ?Model
@@ -42,17 +43,20 @@ class ProductService
             unset($data['image_file']);
         }
 
-        // Handle gallery images upload
+        // Handle gallery images upload and store in separate table
+        $galleryPaths = [];
         if (isset($data['gallery_files']) && is_array($data['gallery_files'])) {
-            $galleryPaths = [];
             foreach ($data['gallery_files'] as $file) {
                 $galleryPaths[] = $this->uploadImage($file, 'products/gallery');
             }
-            $data['gallery'] = $galleryPaths;
             unset($data['gallery_files']);
         }
 
-        return $this->productRepository->create($data);
+        $product = $this->productRepository->create($data);
+        if ($product && !empty($galleryPaths)) {
+            $this->storeImages($product->id, $galleryPaths);
+        }
+        return $product;
     }
 
     public function updateProduct(int|string $id, array $data): bool
@@ -64,20 +68,40 @@ class ProductService
         }
 
         // Handle gallery images upload
+        $galleryPaths = [];
         if (isset($data['gallery_files']) && is_array($data['gallery_files'])) {
-            $galleryPaths = [];
             foreach ($data['gallery_files'] as $file) {
                 $galleryPaths[] = $this->uploadImage($file, 'products/gallery');
             }
-            $data['gallery'] = $galleryPaths;
             unset($data['gallery_files']);
         }
 
-        return $this->productRepository->update($id, $data);
+        // Update product data
+        $updated = $this->productRepository->update($id, $data);
+        if ($updated) {
+            // Remove old images
+            ProductImage::where('product_id', $id)->delete();
+            if (!empty($galleryPaths)) {
+                $this->storeImages($id, $galleryPaths);
+            }
+        }
+        return $updated;
     }
 
-    public function deleteProduct(int|string $id): bool
+    /**
+     * Store images for a product.
+     *
+     * @param int $productId
+     * @param array $images
+     */
+    public function storeImages(int $productId, array $images): void
     {
-        return $this->productRepository->delete($id);
+        foreach ($images as $path) {
+            ProductImage::create([
+                'product_id' => $productId,
+                'image_path' => $path,
+            ]);
+        }
     }
+
 }

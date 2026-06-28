@@ -10,10 +10,10 @@ class ProductResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $galleryUrls = [];
-        if (is_array($this->gallery)) {
-            foreach ($this->gallery as $item) {
-                $galleryUrls[] = url(Storage::url($item));
+        $imageUrls = [];
+        if ($this->relationLoaded('images')) {
+            foreach ($this->images as $img) {
+                $imageUrls[] = url(Storage::url($img->image_path));
             }
         }
 
@@ -28,7 +28,7 @@ class ProductResource extends JsonResource
             'SKU' => $this->SKU,
             'stock' => $this->stock,
             'image' => $this->image ? url(Storage::url($this->image)) : null,
-            'gallery' => $galleryUrls,
+            'images' => $imageUrls,
             'status' => (bool) $this->status,
             'category_id' => $this->category_id,
             'category' => new CategoryResource($this->whenLoaded('category')),

@@ -43,8 +43,10 @@ class AdminController extends Controller
             'sale_price' => 'nullable|numeric|min:0',
             'SKU' => 'required|string|unique:products',
             'stock' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
             'status' => 'nullable|boolean',
+            'image' => 'nullable|string',
+            'gallery' => 'nullable|array',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
@@ -72,13 +74,17 @@ class AdminController extends Controller
             'stock' => 'nullable|integer|min:0',
             'category_id' => 'nullable|exists:categories,id',
             'status' => 'nullable|boolean',
+            'image' => 'nullable|string',
+            'gallery' => 'nullable|array',
         ]);
 
         if (isset($validated['name'])) {
             $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
         }
 
-        $product->update(array_filter($validated));
+        $product->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
         return $this->success($product, 'Product updated successfully');
     }
 
