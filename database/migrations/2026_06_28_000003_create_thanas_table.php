@@ -16,9 +16,10 @@ return new class extends Migration
             $table->foreignId('district_id')->constrained('districts')->cascadeOnDelete();
             $table->string('name');
             $table->string('bn_name');
-            $table->string('code')->nullable();
+            $table->string('code')->unique();
             $table->string('postal_code')->nullable();
             $table->tinyInteger('status')->default(1);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -37,6 +37,12 @@ use App\Repositories\Interfaces\AddressRepositoryInterface;
 use App\Repositories\Eloquent\AddressRepository;
 use App\Repositories\Interfaces\CustomerProfileRepositoryInterface;
 use App\Repositories\Eloquent\CustomerProfileRepository;
+use App\Repositories\Interfaces\DivisionRepositoryInterface;
+use App\Repositories\Eloquent\DivisionRepository;
+use App\Repositories\Interfaces\DistrictRepositoryInterface;
+use App\Repositories\Eloquent\DistrictRepository;
+use App\Repositories\Interfaces\ThanaRepositoryInterface;
+use App\Repositories\Eloquent\ThanaRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -61,6 +67,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(WishlistRepositoryInterface::class, WishlistRepository::class);
         $this->app->bind(AddressRepositoryInterface::class, AddressRepository::class);
         $this->app->bind(CustomerProfileRepositoryInterface::class, CustomerProfileRepository::class);
+        $this->app->bind(DivisionRepositoryInterface::class, DivisionRepository::class);
+        $this->app->bind(DistrictRepositoryInterface::class, DistrictRepository::class);
+        $this->app->bind(ThanaRepositoryInterface::class, ThanaRepository::class);
     }
 
     /**

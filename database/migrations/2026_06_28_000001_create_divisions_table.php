@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('bn_name');
             $table->string('code')->unique();
             $table->tinyInteger('status')->default(1);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
