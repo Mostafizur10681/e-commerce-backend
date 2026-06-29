@@ -22,10 +22,21 @@ class Product extends Model
         'sale_price',
         'SKU',
         'stock',
-        'image',
-        'gallery',
         'status',
         'category_id',
+        'sub_category',
+        'brand',
+        'tax',
+        'discount',
+        'unit',
+        'stock_status',
+        'featured',
+        'best_seller',
+        'organic',
+        'new_arrival',
+        'meta_title',
+        'meta_description',
+        'meta_keywords',
     ];
 
     protected function casts(): array
@@ -35,7 +46,12 @@ class Product extends Model
             'sale_price' => 'decimal:2',
             'stock' => 'integer',
             'status' => 'boolean',
-            'gallery' => 'array',
+            'tax' => 'decimal:2',
+            'discount' => 'decimal:2',
+            'featured' => 'boolean',
+            'best_seller' => 'boolean',
+            'organic' => 'boolean',
+            'new_arrival' => 'boolean',
         ];
     }
 

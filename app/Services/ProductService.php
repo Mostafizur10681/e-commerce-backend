@@ -37,20 +37,33 @@ class ProductService
 
     public function createProduct(array $data): ?Model
     {
-        // Handle single main image upload
+        $galleryPaths = [];
+
+        // Handle single main image upload (if still using file upload)
         if (isset($data['image_file'])) {
-            $data['image'] = $this->uploadImage($data['image_file'], 'products');
+            $galleryPaths[] = $this->uploadImage($data['image_file'], 'products');
             unset($data['image_file']);
         }
 
-        // Handle gallery images upload and store in separate table
-        $galleryPaths = [];
+        // Handle Base64 images array from the request
+        if (isset($data['images']) && is_array($data['images'])) {
+            foreach ($data['images'] as $base64) {
+                // Store the raw Base64 string directly in product_images
+                $galleryPaths[] = $this->uploadBase64Image($base64, 'products/gallery');
+            }
+            unset($data['images']);
+        }
+
+        // Keep legacy gallery_files handling for backward compatibility
         if (isset($data['gallery_files']) && is_array($data['gallery_files'])) {
             foreach ($data['gallery_files'] as $file) {
                 $galleryPaths[] = $this->uploadImage($file, 'products/gallery');
             }
             unset($data['gallery_files']);
         }
+
+        // Remove old image and gallery fields if present
+        unset($data['image'], $data['gallery']);
 
         $product = $this->productRepository->create($data);
         if ($product && !empty($galleryPaths)) {
@@ -61,20 +74,32 @@ class ProductService
 
     public function updateProduct(int|string $id, array $data): bool
     {
-        // Handle single main image upload
+        $galleryPaths = [];
+
+        // Handle single main image upload (if still using file upload)
         if (isset($data['image_file'])) {
-            $data['image'] = $this->uploadImage($data['image_file'], 'products');
+            $galleryPaths[] = $this->uploadImage($data['image_file'], 'products');
             unset($data['image_file']);
         }
 
-        // Handle gallery images upload
-        $galleryPaths = [];
+        // Handle Base64 images array from the request
+        if (isset($data['images']) && is_array($data['images'])) {
+            foreach ($data['images'] as $base64) {
+                // Store the raw Base64 string directly
+                $galleryPaths[] = $this->uploadBase64Image($base64, 'products/gallery');
+            }
+            unset($data['images']);
+        }
+
+        // Keep legacy gallery_files handling for backward compatibility
         if (isset($data['gallery_files']) && is_array($data['gallery_files'])) {
             foreach ($data['gallery_files'] as $file) {
                 $galleryPaths[] = $this->uploadImage($file, 'products/gallery');
             }
             unset($data['gallery_files']);
         }
+
+        unset($data['image'], $data['gallery']);
 
         // Update product data
         $updated = $this->productRepository->update($id, $data);

@@ -7,12 +7,16 @@ use App\Services\AdminService;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\ProductImage;
+use App\Traits\UploadImageTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
+    use UploadImageTrait;
+
     protected AdminService $adminService;
 
     public function __construct(AdminService $adminService)
@@ -29,9 +33,10 @@ class AdminController extends Controller
     // Product Management
     public function productsIndex(Request $request): JsonResponse
     {
-        $products = Product::with('category')->paginate(15);
+        $products = Product::with(['category', 'images'])->paginate(15);
         return $this->success($products, 'Products retrieved successfully');
     }
+
 
     public function productsStore(Request $request): JsonResponse
     {
@@ -47,17 +52,59 @@ class AdminController extends Controller
             'status' => 'nullable|boolean',
             'image' => 'nullable|string',
             'gallery' => 'nullable|array',
+            'sub_category' => 'nullable|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'tax' => 'nullable|numeric|min:0|max:100',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'unit' => 'nullable|string|max:50',
+            'stock_status' => 'nullable|string|max:50',
+            'featured' => 'nullable|boolean',
+            'best_seller' => 'nullable|boolean',
+            'organic' => 'nullable|boolean',
+            'new_arrival' => 'nullable|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
         ]);
 
+        $galleryPaths = [];
+        $galleryInput = $request->input('gallery', []);
+        if (is_array($galleryInput)) {
+            foreach ($galleryInput as $imgItem) {
+                if (empty($imgItem)) continue;
+                if (str_starts_with($imgItem, 'data:image/')) {
+                    $galleryPaths[] = $this->uploadBase64Image($imgItem, 'products/gallery');
+                } else {
+                    $path = $imgItem;
+                    if (str_contains($imgItem, '/storage/')) {
+                        $path = substr($imgItem, strpos($imgItem, '/storage/') + 9);
+                    }
+                    $galleryPaths[] = $path;
+                }
+            }
+        }
+
+        $mainImagePath = !empty($galleryPaths) ? $galleryPaths[0] : null;
+
+        unset($validated['image'], $validated['gallery']);
         $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
         $product = Product::create($validated);
 
-        return $this->success($product, 'Product created successfully', 201);
+        if ($product && !empty($galleryPaths)) {
+            foreach ($galleryPaths as $path) {
+                ProductImage::create([
+                    'product_id' => $product->id,
+                    'image_path' => $path,
+                ]);
+            }
+        }
+
+        return $this->success($product->load('images'), 'Product created successfully', 201);
     }
 
     public function productsShow(string $id): JsonResponse
     {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with(['category', 'images'])->findOrFail($id);
         return $this->success($product, 'Product details retrieved');
     }
 
@@ -76,17 +123,60 @@ class AdminController extends Controller
             'status' => 'nullable|boolean',
             'image' => 'nullable|string',
             'gallery' => 'nullable|array',
+            'sub_category' => 'nullable|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'tax' => 'nullable|numeric|min:0|max:100',
+            'discount' => 'nullable|numeric|min:0|max:100',
+            'unit' => 'nullable|string|max:50',
+            'stock_status' => 'nullable|string|max:50',
+            'featured' => 'nullable|boolean',
+            'best_seller' => 'nullable|boolean',
+            'organic' => 'nullable|boolean',
+            'new_arrival' => 'nullable|boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string',
+            'meta_keywords' => 'nullable|string|max:255',
         ]);
+
+        $galleryPaths = [];
+        $galleryInput = $request->input('gallery', []);
+        if (is_array($galleryInput)) {
+            foreach ($galleryInput as $imgItem) {
+                if (empty($imgItem)) continue;
+                if (str_starts_with($imgItem, 'data:image/')) {
+                    $galleryPaths[] = $this->uploadBase64Image($imgItem, 'products/gallery');
+                } else {
+                    $path = $imgItem;
+                    if (str_contains($imgItem, '/storage/')) {
+                        $path = substr($imgItem, strpos($imgItem, '/storage/') + 9);
+                    }
+                    $galleryPaths[] = $path;
+                }
+            }
+        }
+
+        $mainImagePath = !empty($galleryPaths) ? $galleryPaths[0] : null;
 
         if (isset($validated['name'])) {
             $validated['slug'] = Str::slug($validated['name']) . '-' . uniqid();
         }
 
+        unset($validated['image'], $validated['gallery']);
         $product->update(array_filter($validated, function ($val) {
             return $val !== null;
         }));
-        return $this->success($product, 'Product updated successfully');
+
+        ProductImage::where('product_id', $product->id)->delete();
+        foreach ($galleryPaths as $path) {
+            ProductImage::create([
+                'product_id' => $product->id,
+                'image_path' => $path,
+            ]);
+        }
+
+        return $this->success($product->load('images'), 'Product updated successfully');
     }
+
 
     public function productsDestroy(string $id): JsonResponse
     {

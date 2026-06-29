@@ -21,7 +21,7 @@ trait UploadImageTrait
         Storage::disk('public')->makeDirectory($folder);
 
         $manager = new ImageManager(new Driver());
-        $image = $manager->read($file);
+        $image = $manager->decode($file);
 
         // Resize / Crop
         $image->cover($width, $height);
@@ -32,4 +32,19 @@ trait UploadImageTrait
 
         return $path;
     }
+
+    /**
+     * Upload and crop/resize a base64 encoded image.
+     */
+     protected function uploadBase64Image(string $base64Data, string $folder, int $width = 600, int $height = 600): string
+     {
+         // In the new approach, we store the raw base64 string in the DB.
+         // Optionally you could validate that it's a proper data URI.
+         // Ensure the string has a prefix like data:image/...;base64,; if missing, add a generic one.
+         if (!preg_match('/^data:image\/\w+;base64,/', $base64Data)) {
+             // Assume JPEG if no prefix
+             $base64Data = 'data:image/jpeg;base64,' . $base64Data;
+         }
+         return $base64Data;
+     }
 }

@@ -26,6 +26,9 @@ class StoreProductRequest extends FormRequest
             'gallery_files.*' => 'image|max:2048',
             'status' => 'nullable|boolean',
             'category_id' => 'nullable|exists:categories,id',
+            // New: Accept base64 image strings array
+            'images' => 'nullable|array',
+            'images.*' => 'string',
         ];
     }
 }
