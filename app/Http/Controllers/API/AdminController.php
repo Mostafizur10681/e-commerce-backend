@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\ProductImage;
+use App\Models\Partner;
 use App\Traits\UploadImageTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -202,6 +203,12 @@ class AdminController extends Controller
             'status' => 'nullable|boolean',
         ]);
 
+        if (!empty($validated['image'])) {
+            if (str_starts_with($validated['image'], 'data:image/') || strlen($validated['image']) > 100) {
+                $validated['image'] = $this->uploadBase64Image($validated['image'], 'categories');
+            }
+        }
+
         $category = Category::create($validated);
 
         return $this->success($category, 'Category created successfully', 201);
@@ -224,6 +231,12 @@ class AdminController extends Controller
             'status' => 'nullable|boolean',
         ]);
 
+        if (!empty($validated['image'])) {
+            if (str_starts_with($validated['image'], 'data:image/') || strlen($validated['image']) > 100) {
+                $validated['image'] = $this->uploadBase64Image($validated['image'], 'categories');
+            }
+        }
+
         $category->update(array_filter($validated, function ($val) {
             return $val !== null;
         }));
@@ -235,6 +248,85 @@ class AdminController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
         return $this->success([], 'Category deleted successfully');
+    }
+
+    // Partner Management
+    public function partnersIndex(): JsonResponse
+    {
+        $partners = Partner::all();
+        return $this->success($partners, 'Partners retrieved successfully');
+    }
+
+    public function partnersStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'website' => 'nullable|string|url|max:255',
+            'logo' => 'nullable|string',
+            'image' => 'nullable|string',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        if (!empty($validated['logo'])) {
+            if (str_starts_with($validated['logo'], 'data:image/') || strlen($validated['logo']) > 100) {
+                $validated['logo'] = $this->uploadBase64Image($validated['logo'], 'partners/logos');
+            }
+        }
+
+        if (!empty($validated['image'])) {
+            if (str_starts_with($validated['image'], 'data:image/') || strlen($validated['image']) > 100) {
+                $validated['image'] = $this->uploadBase64Image($validated['image'], 'partners/images');
+            }
+        }
+
+        $partner = Partner::create($validated);
+
+        return $this->success($partner, 'Partner created successfully', 201);
+    }
+
+    public function partnersShow(string $id): JsonResponse
+    {
+        $partner = Partner::findOrFail($id);
+        return $this->success($partner, 'Partner details retrieved');
+    }
+
+    public function partnersUpdate(Request $request, string $id): JsonResponse
+    {
+        $partner = Partner::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'website' => 'nullable|string|url|max:255',
+            'logo' => 'nullable|string',
+            'image' => 'nullable|string',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        if (!empty($validated['logo'])) {
+            if (str_starts_with($validated['logo'], 'data:image/') || strlen($validated['logo']) > 100) {
+                $validated['logo'] = $this->uploadBase64Image($validated['logo'], 'partners/logos');
+            }
+        }
+
+        if (!empty($validated['image'])) {
+            if (str_starts_with($validated['image'], 'data:image/') || strlen($validated['image']) > 100) {
+                $validated['image'] = $this->uploadBase64Image($validated['image'], 'partners/images');
+            }
+        }
+
+        $partner->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
+
+        return $this->success($partner, 'Partner updated successfully');
+    }
+
+    public function partnersDestroy(string $id): JsonResponse
+    {
+        $partner = Partner::findOrFail($id);
+        $partner->delete();
+        return $this->success([], 'Partner deleted successfully');
     }
 
     // Brand Management

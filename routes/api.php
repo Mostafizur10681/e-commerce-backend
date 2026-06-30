@@ -79,6 +79,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/brands/{id}', [AdminController::class, 'brandsUpdate']);
         Route::delete('/brands/{id}', [AdminController::class, 'brandsDestroy']);
 
+        // Partner Management
+        Route::get('/partners', [AdminController::class, 'partnersIndex']);
+        Route::post('/partners', [AdminController::class, 'partnersStore']);
+        Route::get('/partners/{id}', [AdminController::class, 'partnersShow']);
+        Route::put('/partners/{id}', [AdminController::class, 'partnersUpdate']);
+        Route::delete('/partners/{id}', [AdminController::class, 'partnersDestroy']);
+
         // Order Management
         Route::get('/orders', [AdminController::class, 'ordersIndex']);
         Route::get('/orders/{id}', [AdminController::class, 'ordersShow']);

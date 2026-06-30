@@ -39,6 +39,10 @@ class CategoryService
         if (isset($data['image_file'])) {
             $data['image'] = $this->uploadImage($data['image_file'], 'categories');
             unset($data['image_file']);
+        } elseif (isset($data['image']) && !empty($data['image'])) {
+            if (str_starts_with($data['image'], 'data:image/') || strlen($data['image']) > 100) {
+                $data['image'] = $this->uploadBase64Image($data['image'], 'categories');
+            }
         }
         return $this->categoryRepository->create($data);
     }
@@ -48,6 +52,10 @@ class CategoryService
         if (isset($data['image_file'])) {
             $data['image'] = $this->uploadImage($data['image_file'], 'categories');
             unset($data['image_file']);
+        } elseif (isset($data['image']) && !empty($data['image'])) {
+            if (str_starts_with($data['image'], 'data:image/') || strlen($data['image']) > 100) {
+                $data['image'] = $this->uploadBase64Image($data['image'], 'categories');
+            }
         }
         return $this->categoryRepository->update($id, $data);
     }
