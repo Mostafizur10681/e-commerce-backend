@@ -30,6 +30,8 @@ Route::get('reviews', [ReviewController::class, 'index']);
 Route::get('reviews/{review}', [ReviewController::class, 'show']);
 Route::get('faqs', [FaqController::class, 'index']);
 Route::get('faqs/{faq}', [FaqController::class, 'show']);
+Route::get('faq-categories', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesIndex']);
+Route::get('faq-categories/{id}', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesShow']);
 Route::post('subscriptions', [SubscriptionController::class, 'store']);
 
 // Authentication Routes

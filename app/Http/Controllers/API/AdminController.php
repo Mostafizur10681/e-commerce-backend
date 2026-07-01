@@ -9,6 +9,7 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\ProductImage;
 use App\Models\Partner;
+use App\Models\FAQCategory;
 use App\Traits\UploadImageTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -248,6 +249,54 @@ class AdminController extends Controller
         $category = Category::findOrFail($id);
         $category->delete();
         return $this->success([], 'Category deleted successfully');
+    }
+
+    // FAQ Category Management
+    public function faqCategoriesIndex(): JsonResponse
+    {
+        $faqCategories = FAQCategory::all();
+        return $this->success($faqCategories, 'FAQ Categories retrieved successfully');
+    }
+
+    public function faqCategoriesStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $faqCategory = FAQCategory::create($validated);
+
+        return $this->success($faqCategory, 'FAQ Category created successfully', 201);
+    }
+
+    public function faqCategoriesShow(string $id): JsonResponse
+    {
+        $faqCategory = FAQCategory::findOrFail($id);
+        return $this->success($faqCategory, 'FAQ Category details retrieved');
+    }
+
+    public function faqCategoriesUpdate(Request $request, string $id): JsonResponse
+    {
+        $faqCategory = FAQCategory::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $faqCategory->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
+        return $this->success($faqCategory, 'FAQ Category updated successfully');
+    }
+
+    public function faqCategoriesDestroy(string $id): JsonResponse
+    {
+        $faqCategory = FAQCategory::findOrFail($id);
+        $faqCategory->delete();
+        return $this->success([], 'FAQ Category deleted successfully');
     }
 
     // Partner Management

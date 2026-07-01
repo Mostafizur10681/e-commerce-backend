@@ -31,6 +31,12 @@ Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
 Route::get('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'index']);
 Route::get('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'show']);
 
+// Common FAQ & FAQ Category routes for Customer and Admin
+Route::get('/faq-categories', [AdminController::class, 'faqCategoriesIndex']);
+Route::get('/faq-categories/{id}', [AdminController::class, 'faqCategoriesShow']);
+Route::get('/faqs', [\App\Http\Controllers\API\V1\FaqController::class, 'index']);
+Route::get('/faqs/{id}', [\App\Http\Controllers\API\V1\FaqController::class, 'show']);
+
 // Protected APIs
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'profile']);
@@ -72,6 +78,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/categories/{id}', [AdminController::class, 'categoriesShow']);
         Route::put('/categories/{id}', [AdminController::class, 'categoriesUpdate']);
         Route::delete('/categories/{id}', [AdminController::class, 'categoriesDestroy']);
+
+        // FAQ Category Management
+        Route::get('/faq-categories', [AdminController::class, 'faqCategoriesIndex']);
+        Route::post('/faq-categories', [AdminController::class, 'faqCategoriesStore']);
+        Route::get('/faq-categories/{id}', [AdminController::class, 'faqCategoriesShow']);
+        Route::put('/faq-categories/{id}', [AdminController::class, 'faqCategoriesUpdate']);
+        Route::delete('/faq-categories/{id}', [AdminController::class, 'faqCategoriesDestroy']);
 
         // Brand Management
         Route::get('/brands', [AdminController::class, 'brandsIndex']);
