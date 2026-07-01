@@ -21,12 +21,12 @@ class CategoryService
 
     public function getAllCategories(): Collection
     {
-        return $this->categoryRepository->all(['*'], ['parent', 'children']);
+        return $this->categoryRepository->getActive(['parent', 'children']);
     }
 
     public function paginateCategories(int $perPage = 15): LengthAwarePaginator
     {
-        return $this->categoryRepository->paginate($perPage, ['parent', 'children']);
+        return $this->categoryRepository->paginateActive($perPage, ['parent', 'children']);
     }
 
     public function getCategoryById(int|string $id): ?Model

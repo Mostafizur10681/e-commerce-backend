@@ -11,4 +11,14 @@ class CategoryRepository extends BaseRepository implements CategoryRepositoryInt
     {
         parent::__construct($model);
     }
+
+    public function getActive(array $relations = []): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->model->where('status', true)->with($relations)->get();
+    }
+
+    public function paginateActive(int $perPage = 15, array $relations = []): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        return $this->model->where('status', true)->with($relations)->paginate($perPage);
+    }
 }
