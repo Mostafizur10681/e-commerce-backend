@@ -18,6 +18,7 @@ class Review extends Model
         'rating',
         'comment',
         'status',
+        'image_path',
     ];
 
     protected function casts(): array

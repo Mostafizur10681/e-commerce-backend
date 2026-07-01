@@ -26,6 +26,12 @@ class ProductResource extends JsonResource
             }
         }
 
+        // Determine main image: if the product has a dedicated image column use it; otherwise fallback to first gallery image.
+        $mainImage = $this->image;
+        if (empty($mainImage) && count($imageUrls) > 0) {
+            $mainImage = $imageUrls[0];
+        }
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -36,11 +42,6 @@ class ProductResource extends JsonResource
             'sale_price' => $this->sale_price,
             'SKU' => $this->SKU,
             'stock' => $this->stock,
-            // Determine main image: if the product has a dedicated image column use it; otherwise fallback to first gallery image.
-            $mainImage = $this->image;
-            if (empty($mainImage) && count($imageUrls) > 0) {
-                $mainImage = $imageUrls[0];
-            }
             // Return the base64 data URI directly if it is stored as such; otherwise build a storage URL.
             // Ensure main image is a clean data URI if applicable
             'image' => $mainImage ? (function ($img) {

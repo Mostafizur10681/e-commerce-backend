@@ -17,6 +17,7 @@ class UpdateReviewRequest extends FormRequest
             'rating' => 'sometimes|required|integer|min:1|max:5',
             'comment' => 'nullable|string',
             'status' => 'sometimes|required|boolean',
+            'image_path' => 'nullable|string',
         ];
     }
 }

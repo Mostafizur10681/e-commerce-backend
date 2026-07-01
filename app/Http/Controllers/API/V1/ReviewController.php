@@ -73,10 +73,11 @@ class ReviewController extends Controller
         }
 
         $updated = $this->reviewService->updateReviewStatus($id, $validated['status'] ?? $review->status);
-        if (isset($validated['rating']) || isset($validated['comment'])) {
+        if (isset($validated['rating']) || isset($validated['comment']) || isset($validated['image_path'])) {
             $review->update([
                 'rating' => $validated['rating'] ?? $review->rating,
                 'comment' => $validated['comment'] ?? $review->comment,
+                'image_path' => $validated['image_path'] ?? $review->image_path,
             ]);
             $updated = true;
         }

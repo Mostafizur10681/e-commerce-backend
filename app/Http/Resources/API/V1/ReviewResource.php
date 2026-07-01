@@ -18,6 +18,7 @@ class ReviewResource extends JsonResource
             'rating' => $this->rating,
             'comment' => $this->comment,
             'status' => (bool) $this->status,
+            'image_path' => $this->image_path ? (\Illuminate\Support\Str::contains($this->image_path, 'data:image') ? $this->image_path : url(\Illuminate\Support\Facades\Storage::url($this->image_path))) : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -4,6 +4,7 @@ namespace App\Http\Requests\API\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+
 class StoreReviewRequest extends FormRequest
 {
     public function authorize(): bool
@@ -28,6 +29,7 @@ class StoreReviewRequest extends FormRequest
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string',
             'status' => 'nullable|boolean',
+            'image_path' => 'nullable|string',
         ];
     }
 }
