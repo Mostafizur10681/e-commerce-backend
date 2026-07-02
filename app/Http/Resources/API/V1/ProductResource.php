@@ -52,6 +52,7 @@ class ProductResource extends JsonResource
             'status' => (bool) $this->status,
             'category_id' => $this->category_id,
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'attributes' => $this->attributes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

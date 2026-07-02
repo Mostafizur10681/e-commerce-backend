@@ -67,6 +67,7 @@ class AdminController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string|max:255',
+            'attributes' => 'nullable|array',
         ]);
 
         $galleryPaths = [];
@@ -138,6 +139,7 @@ class AdminController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',
             'meta_keywords' => 'nullable|string|max:255',
+            'attributes' => 'nullable|array',
         ]);
 
         $galleryPaths = [];

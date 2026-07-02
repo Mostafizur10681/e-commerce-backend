@@ -37,6 +37,7 @@ class Product extends Model
         'meta_title',
         'meta_description',
         'meta_keywords',
+        'attributes',
     ];
 
     protected function casts(): array
@@ -52,6 +53,7 @@ class Product extends Model
             'best_seller' => 'boolean',
             'organic' => 'boolean',
             'new_arrival' => 'boolean',
+            'attributes' => 'array',
         ];
     }
 
