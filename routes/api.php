@@ -8,13 +8,7 @@ use Illuminate\Support\Facades\Route;
 // Backward Compatibility Fallback
 Route::prefix('v1')->group(base_path('routes/api_v1.php'));
 
-// Administrative Locations routes
-Route::prefix('v1')->group(function () {
-    Route::apiResource('divisions', \App\Http\Controllers\API\V1\DivisionController::class)->only(['index', 'show']);
-    Route::apiResource('districts', \App\Http\Controllers\API\V1\DistrictController::class)->only(['index', 'show']);
-    Route::apiResource('thanas', \App\Http\Controllers\API\V1\ThanaController::class)->only(['index', 'show']);
-});
-
+// Administrative Locations routes moved to api_v1.php
 // Public Authentication APIs
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

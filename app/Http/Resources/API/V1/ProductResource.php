@@ -41,7 +41,13 @@ class ProductResource extends JsonResource
             'price' => $this->price,
             'sale_price' => $this->sale_price,
             'SKU' => $this->SKU,
+            'brand' => $this->brand,
+            'unit' => $this->unit,
             'stock' => $this->stock,
+            'featured' => (bool) $this->featured,
+            'best_seller' => (bool) $this->best_seller,
+            'organic' => (bool) $this->organic,
+            'new_arrival' => (bool) $this->new_arrival,
             // Return the base64 data URI directly if it is stored as such; otherwise build a storage URL.
             // Ensure main image is a clean data URI if applicable
             'image' => $mainImage ? (function ($img) {

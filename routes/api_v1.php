@@ -33,6 +33,15 @@ Route::get('faqs/{faq}', [FaqController::class, 'show']);
 Route::get('faq-categories', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesIndex']);
 Route::get('faq-categories/{id}', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesShow']);
 Route::post('subscriptions', [SubscriptionController::class, 'store']);
+Route::get('partners', [\App\Http\Controllers\API\AdminController::class, 'partnersIndex']);
+
+// Public Location Routes
+Route::get('divisions', [\App\Http\Controllers\API\V1\DivisionController::class, 'index']);
+Route::get('divisions/{division}', [\App\Http\Controllers\API\V1\DivisionController::class, 'show']);
+Route::get('districts', [\App\Http\Controllers\API\V1\DistrictController::class, 'index']);
+Route::get('districts/{district}', [\App\Http\Controllers\API\V1\DistrictController::class, 'show']);
+Route::get('thanas', [\App\Http\Controllers\API\V1\ThanaController::class, 'index']);
+Route::get('thanas/{thana}', [\App\Http\Controllers\API\V1\ThanaController::class, 'show']);
 
 // Authentication Routes
 Route::prefix('auth')->group(function () {
