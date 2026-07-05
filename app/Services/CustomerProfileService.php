@@ -10,6 +10,7 @@ use App\Repositories\Interfaces\CustomerProfileRepositoryInterface;
 use App\Repositories\Interfaces\AddressRepositoryInterface;
 use App\Repositories\Interfaces\WishlistRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class CustomerProfileService
 {
@@ -42,9 +43,19 @@ class CustomerProfileService
         if (isset($data['name'])) {
             $userUpdate['name'] = $data['name'];
         }
+        if (isset($data['email'])) {
+            $userUpdate['email'] = $data['email'];
+        }
         if (isset($data['phone'])) {
             $userUpdate['phone'] = $data['phone'];
         }
+        if (isset($data['profile_pic']) && $data['profile_pic'] instanceof \Illuminate\Http\UploadedFile) {
+            if ($user->profile_pic) {
+                Storage::disk('public')->delete($user->profile_pic);
+            }
+            $userUpdate['profile_pic'] = $data['profile_pic']->store('profile_pics', 'public');
+        }
+        
         if (!empty($userUpdate)) {
             $user->update($userUpdate);
         }

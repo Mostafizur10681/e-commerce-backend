@@ -479,10 +479,36 @@ class AdminController extends Controller
         $validated = $request->validate([
             'name' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'profile_pic' => 'nullable|string',
+            'current_password' => 'nullable|string',
+            'password' => 'nullable|string|min:6',
         ]);
+
+        if (!empty($validated['profile_pic'])) {
+            if (str_starts_with($validated['profile_pic'], 'data:image/') || strlen($validated['profile_pic']) > 100) {
+                $validated['profile_pic'] = $this->uploadBase64Image($validated['profile_pic'], 'users/profiles');
+            }
+        }
+
+        if (!empty($validated['password'])) {
+            $user = \App\Models\User::findOrFail($id);
+            if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+                return response()->json(['message' => 'Current password does not match'], 400);
+            }
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+        unset($validated['current_password']);
 
         $this->adminService->updateCustomer($id, array_filter($validated));
         return $this->success([], 'Customer updated successfully');
+    }
+
+    public function customersDestroy(string $id): JsonResponse
+    {
+        $this->adminService->deleteUser($id);
+        return $this->success([], 'Customer deleted successfully');
     }
 
     public function customersToggleBlock(string $id): JsonResponse

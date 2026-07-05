@@ -104,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/customers/{id}', [AdminController::class, 'customersShow']);
         Route::put('/customers/{id}', [AdminController::class, 'customersUpdate']);
         Route::patch('/customers/{id}/status', [AdminController::class, 'customersToggleBlock']);
+        Route::delete('/customers/{id}', [AdminController::class, 'customersDestroy']);
 
         // User Management
         Route::get('/users', [AdminController::class, 'usersIndex']);

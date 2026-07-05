@@ -15,11 +15,13 @@ class ProfileUpdateRequest extends FormRequest
     {
         return [
             'name' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|unique:users,email,' . $this->user()->id,
+            'phone' => 'nullable|string|regex:/^[0-9]{11}$/',
             'gender' => 'nullable|string|max:10',
             'date_of_birth' => 'nullable|date',
             'shipping_address' => 'nullable|string',
             'billing_address' => 'nullable|string',
+            'profile_pic' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ];
     }
 }
