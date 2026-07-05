@@ -468,6 +468,38 @@ class AdminController extends Controller
         return $this->success($customers, 'Customers list retrieved');
     }
 
+    public function customersStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'phone' => 'required|string|max:20|unique:users',
+            'password' => 'required|string|min:6',
+            'profile_pic' => 'nullable|string',
+            'status' => 'nullable|string',
+        ]);
+
+        if (!empty($validated['profile_pic'])) {
+            if (str_starts_with($validated['profile_pic'], 'data:image/') || strlen($validated['profile_pic']) > 100) {
+                $validated['profile_pic'] = $this->uploadBase64Image($validated['profile_pic'], 'users/profiles');
+            }
+        }
+
+        $user = \App\Models\User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'password' => bcrypt($validated['password']),
+            'role' => 'customer',
+            'status' => $validated['status'] ?? 'active',
+            'profile_pic' => $validated['profile_pic'] ?? null,
+        ]);
+        
+        \App\Models\CustomerProfile::create(['user_id' => $user->id]);
+
+        return $this->success($user, 'Customer created successfully', 201);
+    }
+
     public function customersShow(string $id): JsonResponse
     {
         $customer = $this->adminService->getCustomerDetails($id);

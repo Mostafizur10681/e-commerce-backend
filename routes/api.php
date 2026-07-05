@@ -101,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Customer Management
         Route::get('/customers', [AdminController::class, 'customersIndex']);
+        Route::post('/customers', [AdminController::class, 'customersStore']);
         Route::get('/customers/{id}', [AdminController::class, 'customersShow']);
         Route::put('/customers/{id}', [AdminController::class, 'customersUpdate']);
         Route::patch('/customers/{id}/status', [AdminController::class, 'customersToggleBlock']);
