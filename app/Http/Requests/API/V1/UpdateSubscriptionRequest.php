@@ -15,8 +15,11 @@ class UpdateSubscriptionRequest extends FormRequest
     {
         $id = $this->route('subscription');
         return [
+            'name' => 'nullable|string|max:255',
             'email' => 'sometimes|required|email|max:255|unique:subscriptions,email,' . $id,
-            'status' => 'sometimes|required|boolean',
+            'status' => 'sometimes|required|string|in:Active,Subscribed,Unsubscribed,Pending',
+            'source' => 'nullable|string|in:Website,Checkout,Newsletter Popup,Manual',
+            'notes' => 'nullable|string',
         ];
     }
 }

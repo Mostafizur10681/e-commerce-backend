@@ -12,8 +12,11 @@ class Subscription extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
+        'name',
         'email',
         'status',
+        'source',
+        'notes',
     ];
 
     protected function casts(): array

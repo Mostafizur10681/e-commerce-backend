@@ -10,11 +10,14 @@ class SubscriptionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            'id' => (string) $this->id,
+            'name' => $this->name ?? 'Unknown',
             'email' => $this->email,
-            'status' => (bool) $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'status' => $this->status ?? 'Subscribed',
+            'source' => $this->source ?? 'Manual',
+            'notes' => $this->notes ?? '',
+            'subscriptionDate' => $this->created_at ? $this->created_at->format('Y-m-d') : null,
+            'lastActivity' => $this->updated_at ? $this->updated_at->format('Y-m-d') : null,
         ];
     }
 }

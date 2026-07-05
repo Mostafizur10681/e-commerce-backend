@@ -14,8 +14,11 @@ class StoreSubscriptionRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => 'nullable|string|max:255',
             'email' => 'required|email|max:255|unique:subscriptions,email',
-            'status' => 'nullable|boolean',
+            'status' => 'nullable|string|in:Active,Subscribed,Unsubscribed,Pending',
+            'source' => 'nullable|string|in:Website,Checkout,Newsletter Popup,Manual',
+            'notes' => 'nullable|string',
         ];
     }
 }
