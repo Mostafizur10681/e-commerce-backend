@@ -19,8 +19,13 @@ class Order extends Model
         'total',
         'status',
         'payment_status',
-        'shipping_address',
-        'billing_address',
+        'customer_name',
+        'customer_phone',
+        'customer_email',
+        'division',
+        'district',
+        'thana',
+        'address',
     ];
 
     protected function casts(): array

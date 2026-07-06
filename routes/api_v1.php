@@ -33,7 +33,8 @@ Route::get('faqs/{faq}', [FaqController::class, 'show']);
 Route::get('faq-categories', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesIndex']);
 Route::get('faq-categories/{id}', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesShow']);
 Route::post('subscriptions', [SubscriptionController::class, 'store']);
-Route::get('partners', [\App\Http\Controllers\API\AdminController::class, 'partnersIndex']);
+Route::get('banners', [\App\Http\Controllers\API\V1\BannerController::class, 'index']);
+Route::post('orders', [OrderController::class, 'store']);
 
 // Public Location Routes
 Route::get('divisions', [\App\Http\Controllers\API\V1\DivisionController::class, 'index']);
@@ -78,7 +79,7 @@ Route::prefix('auth')->group(function () {
         Route::apiResource('attributes', AttributeController::class)->except(['index', 'show']);
 
         // Order Routes
-        Route::apiResource('orders', OrderController::class);
+        Route::apiResource('orders', OrderController::class)->except(['store']);
 
         // Customer Profile Routes
         Route::apiResource('customers', CustomerController::class);
@@ -91,5 +92,15 @@ Route::prefix('auth')->group(function () {
 
         // Protected Subscription Routes
         Route::apiResource('subscriptions', SubscriptionController::class)->except(['store']);
+
+        // Dashboard Stats
+        Route::get('/dashboard/stats', [\App\Http\Controllers\API\AdminController::class, 'dashboardStats']);
+
+        // Banners (Admin)
+        Route::post('/banners', [\App\Http\Controllers\API\V1\BannerController::class, 'store']);
+        Route::put('/banners/{banner}', [\App\Http\Controllers\API\V1\BannerController::class, 'update']);
+        Route::delete('/banners/{banner}', [\App\Http\Controllers\API\V1\BannerController::class, 'destroy']);
+        Route::get('/banners/{banner}', [\App\Http\Controllers\API\V1\BannerController::class, 'show']);
+        Route::get('/banners', [\App\Http\Controllers\API\V1\BannerController::class, 'index']);
     });
 });

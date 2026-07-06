@@ -69,13 +69,18 @@ class OrderService
 
             // Create order
             $order = $this->orderRepository->create([
-                'user_id' => $data['user_id'],
+                'user_id' => $data['user_id'] ?? null,
                 'order_number' => $data['order_number'],
                 'total' => $data['total'],
                 'status' => $data['status'] ?? 'pending',
                 'payment_status' => $data['payment_status'] ?? 'pending',
-                'shipping_address' => $data['shipping_address'],
-                'billing_address' => $data['billing_address'] ?? $data['shipping_address'],
+                'customer_name' => $data['customer_name'],
+                'customer_phone' => $data['customer_phone'],
+                'customer_email' => $data['customer_email'] ?? null,
+                'division' => $data['division'],
+                'district' => $data['district'],
+                'thana' => $data['thana'],
+                'address' => $data['address'],
             ]);
 
             // Save order items
