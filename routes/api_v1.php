@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\API\V1\AboutPageController;
+use App\Http\Controllers\API\V1\ContactMessageController;
+use App\Http\Controllers\API\V1\ContactSettingController;
 use App\Http\Controllers\API\V1\AttributeController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\CategoryController;
@@ -36,6 +38,8 @@ Route::get('faq-categories/{id}', [\App\Http\Controllers\API\AdminController::cl
 Route::post('subscriptions', [SubscriptionController::class, 'store']);
 Route::get('banners', [\App\Http\Controllers\API\V1\BannerController::class, 'index']);
 Route::get('about', [AboutPageController::class, 'index']);
+Route::get('contact-settings', [ContactSettingController::class, 'index']);
+Route::post('messages', [ContactMessageController::class, 'store']);
 Route::post('orders', [OrderController::class, 'store']);
 
 // Public Location Routes
@@ -107,5 +111,12 @@ Route::prefix('auth')->group(function () {
 
         // About Page (Admin)
         Route::put('/about', [AboutPageController::class, 'update']);
+
+        // Contact Settings (Admin)
+        Route::put('/contact-settings', [ContactSettingController::class, 'update']);
+
+        // Messages (Admin)
+        Route::put('messages/bulk', [ContactMessageController::class, 'bulkUpdate']);
+        Route::apiResource('messages', ContactMessageController::class)->except(['store']);
     });
 });
