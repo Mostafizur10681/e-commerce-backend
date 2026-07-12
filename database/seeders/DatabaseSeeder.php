@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SystemUsersSeeder::class,
             BangladeshLocationsSeeder::class,
             FAQCategorySeeder::class,
+            AboutPageSeeder::class,
         ]);
 
         // User::factory(10)->create();

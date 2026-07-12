@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\V1\AboutPageController;
 use App\Http\Controllers\API\V1\AttributeController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\CategoryController;
@@ -34,6 +35,7 @@ Route::get('faq-categories', [\App\Http\Controllers\API\AdminController::class, 
 Route::get('faq-categories/{id}', [\App\Http\Controllers\API\AdminController::class, 'faqCategoriesShow']);
 Route::post('subscriptions', [SubscriptionController::class, 'store']);
 Route::get('banners', [\App\Http\Controllers\API\V1\BannerController::class, 'index']);
+Route::get('about', [AboutPageController::class, 'index']);
 Route::post('orders', [OrderController::class, 'store']);
 
 // Public Location Routes
@@ -102,5 +104,8 @@ Route::prefix('auth')->group(function () {
         Route::delete('/banners/{banner}', [\App\Http\Controllers\API\V1\BannerController::class, 'destroy']);
         Route::get('/banners/{banner}', [\App\Http\Controllers\API\V1\BannerController::class, 'show']);
         Route::get('/banners', [\App\Http\Controllers\API\V1\BannerController::class, 'index']);
+
+        // About Page (Admin)
+        Route::put('/about', [AboutPageController::class, 'update']);
     });
 });
