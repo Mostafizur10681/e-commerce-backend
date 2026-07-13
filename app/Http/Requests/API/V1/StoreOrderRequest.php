@@ -13,10 +13,17 @@ class StoreOrderRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        // Automatically inject current user ID if not provided
-        if ($this->user() && !$this->has('user_id')) {
+        $user = $this->user();
+        if (!$user && $token = $this->bearerToken()) {
+            $model = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+            if ($model && $model->tokenable instanceof \App\Models\User) {
+                $user = $model->tokenable;
+            }
+        }
+
+        if ($user && !$this->has('user_id')) {
             $this->merge([
-                'user_id' => $this->user()->id,
+                'user_id' => $user->id,
             ]);
         }
     }

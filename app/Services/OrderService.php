@@ -29,9 +29,15 @@ class OrderService
         return $this->orderRepository->paginate($perPage, $relations);
     }
 
-    public function getOrderById(int|string $id, array $relations = ['user', 'items.product']): ?Model
+    public function getOrderById(int|string $id, array $relations = ['user', 'items.product.images']): ?Model
     {
-        return $this->orderRepository->findOrFail($id, ['*'], $relations);
+        if (is_numeric($id)) {
+            $order = $this->orderRepository->find($id, ['*'], $relations);
+            if ($order) {
+                return $order;
+            }
+        }
+        return \App\Models\Order::with($relations)->where('order_number', $id)->firstOrFail();
     }
 
     public function createOrder(array $data): ?Model

@@ -28,7 +28,7 @@ class OrderController extends Controller
         if ($user->hasRole(['Admin', 'Editor'])) {
             $orders = $this->orderService->paginateOrders($perPage);
         } else {
-            $query = \App\Models\Order::where('user_id', $user->id)->with(['user', 'items.product']);
+            $query = \App\Models\Order::where('user_id', $user->id)->with(['user', 'items.product.images']);
             $orders = $query->paginate($perPage);
         }
 

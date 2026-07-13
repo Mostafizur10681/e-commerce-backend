@@ -38,7 +38,7 @@ class CustomerProfileController extends Controller
     // Orders
     public function getOrders(Request $request): JsonResponse
     {
-        $orders = Order::where('user_id', $request->user()->id)->with('items.product')->paginate(15);
+        $orders = Order::where('user_id', $request->user()->id)->with('items.product.images')->paginate(15);
         return $this->success($orders, 'Orders retrieved successfully');
     }
 
