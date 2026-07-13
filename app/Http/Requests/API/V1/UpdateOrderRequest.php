@@ -14,7 +14,7 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'sometimes|required|string|in:pending,processing,completed,cancelled',
+            'status' => 'sometimes|required|string|in:pending,order placed,processing,packed,shipped,out for delivery,delivered,completed,cancelled',
             'payment_status' => 'sometimes|required|string|in:pending,paid,failed,refunded',
         ];
     }

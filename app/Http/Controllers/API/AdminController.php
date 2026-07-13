@@ -10,6 +10,8 @@ use App\Models\Order;
 use App\Models\ProductImage;
 use App\Models\Partner;
 use App\Models\FAQCategory;
+use App\Models\PaymentStatus;
+use App\Models\OrderStatus;
 use App\Traits\UploadImageTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -426,7 +428,7 @@ class AdminController extends Controller
     // Order Management
     public function ordersIndex(): JsonResponse
     {
-        $orders = Order::with('user')->paginate(15);
+        $orders = Order::with('user')->latest()->paginate(15);
         return $this->success($orders, 'Orders retrieved successfully');
     }
 
@@ -576,5 +578,113 @@ class AdminController extends Controller
     {
         $this->adminService->deleteUser($id);
         return $this->success([], 'User deleted successfully');
+    }
+
+    // Payment Status Management
+    public function paymentStatusesIndex(Request $request): JsonResponse
+    {
+        if ($request->boolean('all')) {
+            $statuses = PaymentStatus::orderBy('id', 'desc')->get();
+            return $this->success($statuses, 'Payment statuses retrieved successfully');
+        }
+        $perPage = $request->query('per_page', 15);
+        $statuses = PaymentStatus::orderBy('id', 'desc')->paginate($perPage);
+        return $this->success($statuses, 'Payment statuses retrieved successfully');
+    }
+
+    public function paymentStatusesStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:payment_statuses,name',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $status = PaymentStatus::create($validated);
+
+        return $this->success($status, 'Payment status created successfully', 201);
+    }
+
+    public function paymentStatusesShow(string $id): JsonResponse
+    {
+        $status = PaymentStatus::findOrFail($id);
+        return $this->success($status, 'Payment status details retrieved');
+    }
+
+    public function paymentStatusesUpdate(Request $request, string $id): JsonResponse
+    {
+        $status = PaymentStatus::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255|unique:payment_statuses,name,' . $id,
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $status->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
+
+        return $this->success($status, 'Payment status updated successfully');
+    }
+
+    public function paymentStatusesDestroy(string $id): JsonResponse
+    {
+        $status = PaymentStatus::findOrFail($id);
+        $status->delete();
+        return $this->success([], 'Payment status deleted successfully');
+    }
+
+    // Order Status Management
+    public function orderStatusesIndex(Request $request): JsonResponse
+    {
+        if ($request->boolean('all')) {
+            $statuses = OrderStatus::orderBy('id', 'asc')->get();
+            return $this->success($statuses, 'Order statuses retrieved successfully');
+        }
+        $perPage = $request->query('per_page', 15);
+        $statuses = OrderStatus::orderBy('id', 'asc')->paginate($perPage);
+        return $this->success($statuses, 'Order statuses retrieved successfully');
+    }
+
+    public function orderStatusesStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:order_statuses,name',
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $status = OrderStatus::create($validated);
+
+        return $this->success($status, 'Order status created successfully', 201);
+    }
+
+    public function orderStatusesShow(string $id): JsonResponse
+    {
+        $status = OrderStatus::findOrFail($id);
+        return $this->success($status, 'Order status details retrieved');
+    }
+
+    public function orderStatusesUpdate(Request $request, string $id): JsonResponse
+    {
+        $status = OrderStatus::findOrFail($id);
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255|unique:order_statuses,name,' . $id,
+            'description' => 'nullable|string',
+            'status' => 'nullable|boolean',
+        ]);
+
+        $status->update(array_filter($validated, function ($val) {
+            return $val !== null;
+        }));
+
+        return $this->success($status, 'Order status updated successfully');
+    }
+
+    public function orderStatusesDestroy(string $id): JsonResponse
+    {
+        $status = OrderStatus::findOrFail($id);
+        $status->delete();
+        return $this->success([], 'Order status deleted successfully');
     }
 }

@@ -99,6 +99,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/orders/{id}', [AdminController::class, 'ordersUpdate']);
         Route::patch('/orders/status', [AdminController::class, 'ordersUpdateStatus']);
 
+        // Payment Status Management
+        Route::get('/payment-statuses', [AdminController::class, 'paymentStatusesIndex']);
+        Route::post('/payment-statuses', [AdminController::class, 'paymentStatusesStore']);
+        Route::get('/payment-statuses/{id}', [AdminController::class, 'paymentStatusesShow']);
+        Route::put('/payment-statuses/{id}', [AdminController::class, 'paymentStatusesUpdate']);
+        Route::delete('/payment-statuses/{id}', [AdminController::class, 'paymentStatusesDestroy']);
+
+        // Order Status Management
+        Route::get('/order-statuses', [AdminController::class, 'orderStatusesIndex']);
+        Route::post('/order-statuses', [AdminController::class, 'orderStatusesStore']);
+        Route::get('/order-statuses/{id}', [AdminController::class, 'orderStatusesShow']);
+        Route::put('/order-statuses/{id}', [AdminController::class, 'orderStatusesUpdate']);
+        Route::delete('/order-statuses/{id}', [AdminController::class, 'orderStatusesDestroy']);
+
         // Customer Management
         Route::get('/customers', [AdminController::class, 'customersIndex']);
         Route::post('/customers', [AdminController::class, 'customersStore']);

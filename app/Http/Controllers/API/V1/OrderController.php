@@ -94,4 +94,21 @@ class OrderController extends Controller
         }
         return $this->error('Failed to delete order');
     }
+
+    public function trackOrderPublic(string $orderNumber): JsonResponse
+    {
+        try {
+            $order = $this->orderService->getOrderById($orderNumber);
+            return $this->success(new OrderResource($order), 'Order retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->error('Order not found', [], 404);
+        }
+    }
+
+    public function activeOrderStatusesPublic(): JsonResponse
+    {
+        // Get active order statuses ordered by ID
+        $statuses = \App\Models\OrderStatus::where('status', true)->orderBy('id', 'asc')->get();
+        return $this->success($statuses, 'Active order statuses retrieved successfully');
+    }
 }

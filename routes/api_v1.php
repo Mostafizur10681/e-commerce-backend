@@ -41,6 +41,8 @@ Route::get('about', [AboutPageController::class, 'index']);
 Route::get('contact-settings', [ContactSettingController::class, 'index']);
 Route::post('messages', [ContactMessageController::class, 'store']);
 Route::post('orders', [OrderController::class, 'store']);
+Route::get('orders/track/{order_number}', [OrderController::class, 'trackOrderPublic']);
+Route::get('order-statuses/active', [OrderController::class, 'activeOrderStatusesPublic']);
 
 // Public Location Routes
 Route::get('divisions', [\App\Http\Controllers\API\V1\DivisionController::class, 'index']);
