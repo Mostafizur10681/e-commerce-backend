@@ -68,6 +68,7 @@ class OrderService
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'price' => $price,
+                    'attributes' => $item['attributes'] ?? null,
                 ];
             }
 
