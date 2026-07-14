@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\V1\AboutPageController;
 use App\Http\Controllers\API\V1\ContactMessageController;
 use App\Http\Controllers\API\V1\ContactSettingController;
+use App\Http\Controllers\API\V1\FooterSettingController;
 use App\Http\Controllers\API\V1\AttributeController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\CategoryController;
@@ -43,6 +44,7 @@ Route::post('messages', [ContactMessageController::class, 'store']);
 Route::post('orders', [OrderController::class, 'store']);
 Route::get('orders/track/{order_number}', [OrderController::class, 'trackOrderPublic']);
 Route::get('order-statuses/active', [OrderController::class, 'activeOrderStatusesPublic']);
+Route::get('footer-settings', [FooterSettingController::class, 'index']);
 
 // Public Location Routes
 Route::get('divisions', [\App\Http\Controllers\API\V1\DivisionController::class, 'index']);
@@ -116,6 +118,9 @@ Route::prefix('auth')->group(function () {
 
         // Contact Settings (Admin)
         Route::put('/contact-settings', [ContactSettingController::class, 'update']);
+
+        // Footer Settings (Admin)
+        Route::put('/footer-settings', [FooterSettingController::class, 'update']);
 
         // Messages (Admin)
         Route::put('messages/bulk', [ContactMessageController::class, 'bulkUpdate']);
