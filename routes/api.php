@@ -151,5 +151,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/reviews', [\App\Http\Controllers\API\V1\ReviewController::class, 'store']);
         Route::put('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [\App\Http\Controllers\API\V1\ReviewController::class, 'destroy']);
+
+        // Wishlist Management
+        Route::get('/wishlists', [AdminController::class, 'wishlistsIndex']);
+        Route::delete('/wishlists/{id}', [AdminController::class, 'wishlistsDestroy']);
     });
 });

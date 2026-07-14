@@ -687,4 +687,20 @@ class AdminController extends Controller
         $status->delete();
         return $this->success([], 'Order status deleted successfully');
     }
+
+    public function wishlistsIndex(Request $request): JsonResponse
+    {
+        $wishlists = \App\Models\Wishlist::with(['user', 'product.images'])->paginate(15);
+        return $this->success(
+            \App\Http\Resources\API\V1\WishlistResource::collection($wishlists)->response()->getData(true),
+            'All wishlists retrieved successfully'
+        );
+    }
+
+    public function wishlistsDestroy(string $id): JsonResponse
+    {
+        $wishlist = \App\Models\Wishlist::findOrFail($id);
+        $wishlist->delete();
+        return $this->success([], 'Wishlist item deleted successfully');
+    }
 }

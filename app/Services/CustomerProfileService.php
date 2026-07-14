@@ -103,7 +103,7 @@ class CustomerProfileService
     // Wishlist
     public function getWishlist(User $user): Collection
     {
-        return Wishlist::where('user_id', $user->id)->with('product')->get();
+        return Wishlist::where('user_id', $user->id)->with(['product.images'])->get();
     }
 
     public function addToWishlist(User $user, array $data): Wishlist

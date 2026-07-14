@@ -46,7 +46,10 @@ class CustomerProfileController extends Controller
     public function getWishlist(Request $request): JsonResponse
     {
         $wishlist = $this->profileService->getWishlist($request->user());
-        return $this->success($wishlist, 'Wishlist retrieved successfully');
+        return $this->success(
+            \App\Http\Resources\API\V1\WishlistResource::collection($wishlist),
+            'Wishlist retrieved successfully'
+        );
     }
 
     public function addToWishlist(Request $request): JsonResponse
