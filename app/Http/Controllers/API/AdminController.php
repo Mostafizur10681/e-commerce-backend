@@ -30,8 +30,115 @@ class AdminController extends Controller
 
     public function dashboard(): JsonResponse
     {
-        $stats = $this->adminService->getDashboardStats();
-        return $this->success($stats, 'Dashboard statistics retrieved successfully');
+        // 1. Core counters
+        $totalUsers = \App\Models\User::count();
+        $totalCustomers = \App\Models\User::where('role', 'customer')->count();
+        $totalProducts = \App\Models\Product::count();
+        $totalCategories = \App\Models\Category::count();
+        $totalOrders = \App\Models\Order::count();
+        
+        // 2. Active orders and revenue
+        $activeOrders = \App\Models\Order::where('status', '!=', 'cancelled')->get();
+        $totalRevenue = $activeOrders->sum('total');
+
+        // 3. Recent 5 orders
+        $recentOrders = \App\Models\Order::with('user')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'customerName' => $order->customer_name ?: ($order->user ? $order->user->name : 'Guest'),
+                    'customerEmail' => $order->customer_email ?: ($order->user ? $order->user->email : 'N/A'),
+                    'amount' => (float) $order->total,
+                    'status' => ucfirst($order->status),
+                    'date' => $order->created_at ? $order->created_at->format('Y-m-d H:i') : 'N/A',
+                ];
+            });
+
+        // 4. Top 3 Selling Products
+        $topSelling = \App\Models\OrderItem::select('product_id', \DB::raw('SUM(quantity) as sales_count'), \DB::raw('SUM(price * quantity) as revenue'))
+            ->groupBy('product_id')
+            ->orderByDesc('revenue')
+            ->take(3)
+            ->with('product.images')
+            ->get()
+            ->map(function ($item) {
+                $p = $item->product;
+                if (!$p) return null;
+                $imageUrl = $p->image ?: ($p->images->first() ? $p->images->first()->image_path : '');
+                $formattedImage = $imageUrl 
+                    ? (str_starts_with($imageUrl, 'data:image') ? $imageUrl : url(\Storage::url($imageUrl)))
+                    : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 100 100"><rect width="100" height="100" fill="%2316A34A"/></svg>';
+                
+                return [
+                    'name' => $p->name,
+                    'revenue' => '৳' . number_format($item->revenue, 2),
+                    'salesCount' => (int) $item->sales_count,
+                    'image' => str_starts_with($formattedImage, 'data:image') 
+                        ? '<img src="' . $formattedImage . '" class="h-full w-full object-cover" />'
+                        : '<img src="' . $formattedImage . '" class="h-full w-full object-cover" />',
+                ];
+            })->filter()->values();
+
+        // 5. Chart Data (Monthly revenue trend for last 6 months)
+        $monthlyRevenue = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $start = $month->copy()->startOfMonth();
+            $end = $month->copy()->endOfMonth();
+            
+            $rev = (float) \App\Models\Order::where('status', '!=', 'cancelled')
+                ->whereBetween('created_at', [$start, $end])
+                ->sum('total');
+                
+            $monthlyRevenue[] = [
+                'name' => $month->format('M'),
+                'Revenue' => $rev,
+                'Expenses' => round($rev * 0.65), 
+            ];
+        }
+
+        // 6. Chart Data (Weekly sales count per day for current week)
+        $weeklySales = [];
+        $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        foreach ($days as $idx => $dayName) {
+            $targetDay = now()->startOfWeek()->addDays($idx);
+            $salesCount = (int) \App\Models\Order::whereDate('created_at', $targetDay)->count();
+            $weeklySales[] = [
+                'name' => $dayName,
+                'Sales' => $salesCount,
+            ];
+        }
+
+        // 7. Chart Data (Orders count trend for last 7 days)
+        $ordersTrend = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $count = (int) \App\Models\Order::whereDate('created_at', $date)->count();
+            $ordersTrend[] = [
+                'name' => $date->format('M d'),
+                'Orders' => $count,
+            ];
+        }
+
+        return $this->success([
+            'stats' => [
+                'total_revenue' => (float) $totalRevenue,
+                'total_orders' => (int) $totalOrders,
+                'total_products' => (int) $totalProducts,
+                'total_customers' => (int) $totalCustomers,
+            ],
+            'recent_orders' => $recentOrders,
+            'top_products' => $topSelling,
+            'charts' => [
+                'revenue_data' => $monthlyRevenue,
+                'sales_data' => $weeklySales,
+                'orders_trend_data' => $ordersTrend,
+            ]
+        ], 'Dashboard stats retrieved successfully');
     }
 
     // Product Management
